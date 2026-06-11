@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚽ WC 2026 Trash Talk Tracker</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.10.0/dist/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg-secondary: #f5f5f3;
+    --bg-tertiary: #eeede9;
+    --text: #1a1a18;
+    --text-secondary: #6b6b67;
+    --border: rgba(0,0,0,0.12);
+    --border-mid: rgba(0,0,0,0.22);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --blue-bg: #E6F1FB; --blue-text: #0C447C; --blue-accent: #185FA5;
+    --green-bg: #E1F5EE; --green-text: #085041;
+    --amber-bg: #FAEEDA; --amber-text: #633806; --amber-accent: #EF9F27;
+    --purple-bg: #EEEDFE; --purple-text: #3C3489;
+    --coral-bg: #FAECE7; --coral-text: #712B13;
+    --pink-bg: #FBEAF0; --pink-text: #72243E;
+    --teal-bg: #E1F5EE; --teal-text: #085041;
+    --gray-bg: #F1EFE8; --gray-text: #444441;
+    --red-bg: #FCEBEB; --red-text: #791F1F;
+    --gold: #EF9F27; --silver: #888780; --bronze: #D85A30;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e1c;
+      --bg-secondary: #282825;
+      --bg-tertiary: #323230;
+      --text: #f0efe9;
+      --text-secondary: #9a9994;
+      --border: rgba(255,255,255,0.1);
+      --border-mid: rgba(255,255,255,0.2);
+      --blue-bg: #0c2a45; --blue-text: #85B7EB;
+      --green-bg: #062e23; --green-text: #5DCAA5;
+      --amber-bg: #3a2408; --amber-text: #FAC775;
+      --purple-bg: #1a1845; --purple-text: #AFA9EC;
+      --coral-bg: #3a1a0a; --coral-text: #F0997B;
+      --pink-bg: #2e1020; --pink-text: #ED93B1;
+      --teal-bg: #062e23; --teal-text: #5DCAA5;
+      --gray-bg: #2c2c2a; --gray-text: #B4B2A9;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-tertiary);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .page {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 1rem 4rem;
+  }
+
+  header {
+    margin-bottom: 2rem;
+  }
+  header h1 {
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  header p {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .scoring-key {
+    background: var(--bg-secondary);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 10px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    margin-bottom: 1.25rem;
+  }
+  .scoring-key span { font-size: 12px; color: var(--text-secondary); }
+  .scoring-key strong { color: var(--text); }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+  .btn-group { display: flex; gap: 0; }
+  .btn-group .btn:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); border-right: none; }
+  .btn-group .btn:last-child  { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+
+  .btn {
+    font-size: 13px;
+    padding: 7px 14px;
+    border: 0.5px solid var(--border-mid);
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    color: var(--text);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--bg-secondary); }
+  .btn.active { background: var(--blue-accent); color: #fff; border-color: var(--blue-accent); }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+
+  .status {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-left: auto;
+  }
+
+  .error-msg {
+    background: var(--red-bg);
+    color: var(--red-text);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    font-size: 13px;
+    margin-bottom: 1rem;
+    border: 0.5px solid rgba(162,45,45,0.2);
+  }
+
+  /* API Key banner */
+  .api-banner {
+    background: var(--amber-bg);
+    color: var(--amber-text);
+    border: 0.5px solid rgba(186,117,23,0.3);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .api-banner h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+  .api-banner p { font-size: 13px; margin-bottom: 10px; line-height: 1.5; }
+  .api-banner .key-row { display: flex; gap: 8px; }
+  .api-banner input {
+    flex: 1;
+    font-size: 13px;
+    padding: 7px 10px;
+    border: 0.5px solid rgba(186,117,23,0.4);
+    border-radius: var(--radius-md);
+    background: rgba(255,255,255,0.6);
+    color: var(--amber-text);
+    font-family: monospace;
+    min-width: 0;
+  }
+  .api-banner input::placeholder { color: rgba(99,56,6,0.5); font-family: monospace; }
+
+  /* Leaderboard */
+  .leaderboard { display: flex; flex-direction: column; gap: 8px; }
+
+  .player-card {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    transition: box-shadow 0.15s;
+  }
+  .player-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .player-card.gold   { border-color: var(--gold); border-width: 1.5px; }
+  .player-card.silver { border-color: var(--silver); border-width: 1.5px; }
+  .player-card.bronze { border-color: var(--bronze); border-width: 1.5px; }
+
+  .player-top { display: flex; align-items: center; gap: 12px; }
+  .rank-num { font-size: 18px; font-weight: 600; min-width: 30px; color: var(--text-secondary); }
+  .avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600; flex-shrink: 0;
+  }
+  .player-name { font-size: 16px; font-weight: 500; }
+  .player-total { margin-left: auto; text-align: right; }
+  .player-total .pts  { font-size: 24px; font-weight: 600; line-height: 1; }
+  .player-total .lbl  { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+
+  .team-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 0.5px solid var(--border);
+  }
+  .pill {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .pill .flag { font-size: 14px; }
+  .pill .ppts { font-weight: 600; }
+  .pill.t1 { background: var(--blue-bg);   color: var(--blue-text); }
+  .pill.t2 { background: var(--green-bg);  color: var(--green-text); }
+  .pill.t3 { background: var(--amber-bg);  color: var(--amber-text); }
+  .pill.t4 { background: var(--purple-bg); color: var(--purple-text); }
+  .pill.t5 { background: var(--coral-bg);  color: var(--coral-text); }
+  .pill.t6 { background: var(--gray-bg);   color: var(--gray-text); }
+  .pill.out { opacity: 0.45; text-decoration: line-through; }
+
+  /* By-team table view */
+  .player-section { margin-bottom: 2rem; }
+  .player-section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .player-section-header .name { font-size: 15px; font-weight: 500; }
+  .player-section-header .total { margin-left: auto; font-size: 15px; font-weight: 600; }
+
+  table.detail {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    background: var(--bg);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 0.5px solid var(--border);
+  }
+  table.detail th {
+    text-align: left;
+    padding: 8px 10px;
+    color: var(--text-secondary);
+    font-weight: 400;
+    background: var(--bg-secondary);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  table.detail td {
+    padding: 8px 10px;
+    border-top: 0.5px solid var(--border);
+    color: var(--text);
+    vertical-align: middle;
+  }
+  table.detail tr:hover td { background: var(--bg-secondary); }
+  .eliminated-row td { opacity: 0.5; }
+  .champion { color: #1D9E75; font-weight: 600; }
+
+  /* Loading */
+  .loader {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+  .spinner {
+    display: inline-block;
+    width: 22px; height: 22px;
+    border: 2px solid var(--border);
+    border-top-color: var(--blue-accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: -5px;
+    margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  footer {
+    margin-top: 3rem;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  @media (max-width: 600px) {
+    header h1 { font-size: 20px; }
+    .player-total .pts { font-size: 20px; }
+    table.detail th:nth-child(3),
+    table.detail td:nth-child(3) { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>⚽ WC 2026 Trash Talk Tracker</h1>
+    <p>Mark · Jeffy · John · Johnny · Nookie · Pat · Adam · Todd &nbsp;|&nbsp; 6 teams each · Live scores via Anthropic AI</p>
+  </header>
+
+  <div class="scoring-key">
+    <span><strong>Win</strong> +3</span>
+    <span><strong>Draw</strong> +1</span>
+    <span><strong>Goal</strong> +1</span>
+    <span><strong>Clean Sheet</strong> +1</span>
+    <span><strong>→ Knockouts</strong> +2</span>
+    <span><strong>Each KO round</strong> +2</span>
+    <span><strong>🏆 Champion</strong> +5</span>
+    <span><strong>🥈 Runner-up</strong> +3</span>
+  </div>
+
+  <div class="api-banner" id="api-banner">
+    <h3>🔑 One-time setup: Anthropic API key</h3>
+    <p>This app fetches live World Cup data using the Anthropic API. Paste your API key below — it stays in your browser only and is never sent anywhere except Anthropic.<br>Get a key at <a href="https://console.anthropic.com" target="_blank" style="color:inherit">console.anthropic.com</a> (free tier works fine).</p>
+    <div class="key-row">
+      <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off">
+      <button class="btn active" onclick="saveKey()">Save key</button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="btn-group">
+      <button class="btn active" id="btn-board" onclick="setView('board')">Leaderboard</button>
+      <button class="btn" id="btn-teams" onclick="setView('teams')">By team</button>
+    </div>
+    <button class="btn" id="refresh-btn" onclick="fetchScores()">
+      <i class="ti ti-refresh"></i> Refresh scores
+    </button>
+    <span class="status" id="status-txt">—</span>
+  </div>
+
+  <div id="error-box"></div>
+  <div id="main-content">
+    <div class="loader">Enter your API key above, then click Refresh scores.</div>
+  </div>
+
+  <footer>WC 2026 · Data via Anthropic AI web search · Scoring system by the group</footer>
+</div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────────────
+const PLAYERS = {
+  Mark:   { initials:'MA', bg:'#E6F1FB', color:'#0C447C' },
+  Jeffy:  { initials:'JE', bg:'#E1F5EE', color:'#085041' },
+  John:   { initials:'JO', bg:'#FAECE7', color:'#712B13' },
+  Johnny: { initials:'JN', bg:'#EEEDFE', color:'#3C3489' },
+  Nookie: { initials:'NO', bg:'#FAEEDA', color:'#633806' },
+  Pat:    { initials:'PA', bg:'#FBEAF0', color:'#72243E' },
+  Adam:   { initials:'AD', bg:'#E1F5EE', color:'#0F6E56' },
+  Todd:   { initials:'TO', bg:'#F1EFE8', color:'#444441' },
+};
+
+const ASSIGNMENTS = {
+  Mark:   [['Germany',1],['Uruguay',2],['Ecuador',3],['Czechia',4],['DR Congo',5],['Panama',6]],
+  Jeffy:  [['Spain',1],['Japan',2],['Austria',3],['Sweden',4],['Paraguay',5],['Haiti',6]],
+  John:   [['Netherlands',1],['Belgium',2],['Switzerland',3],['Türkiye',4],['Canada',5],['Uzbekistan',6]],
+  Johnny: [['England',1],['United States',2],['Egypt',3],['Ghana',4],['Ivory Coast',5],['Iraq',6]],
+  Nookie: [['Argentina',1],['Croatia',2],['Australia',3],['Scotland',4],['Qatar',5],['Curaçao',6]],
+  Pat:    [['Brazil',1],['Morocco',2],['Norway',3],['Tunisia',4],['Algeria',5],['Jordan',6]],
+  Adam:   [['Portugal',1],['Mexico',2],['Senegal',3],['Iran',4],['Saudi Arabia',5],['Cape Verde',6]],
+  Todd:   [['France',1],['Colombia',2],['South Korea',3],['Bosnia & Herzegovina',4],['New Zealand',5],['South Africa',6]],
+};
+
+const FLAGS = {
+  'Germany':'🇩🇪','Spain':'🇪🇸','Netherlands':'🇳🇱','England':'🏴󠁧󠁢󠁥󠁮󠁧󁿢','Argentina':'🇦🇷','Brazil':'🇧🇷','Portugal':'🇵🇹','France':'🇫🇷',
+  'Uruguay':'🇺🇾','Japan':'🇯🇵','Belgium':'🇧🇪','United States':'🇺🇸','Croatia':'🇭🇷','Morocco':'🇲🇦','Mexico':'🇲🇽','Colombia':'🇨🇴',
+  'Ecuador':'🇪🇨','Austria':'🇦🇹','Switzerland':'🇨🇭','Egypt':'🇪🇬','Australia':'🇦🇺','Norway':'🇳🇴','Senegal':'🇸🇳','South Korea':'🇰🇷',
+  'Czechia':'🇨🇿','Sweden':'🇸🇪','Türkiye':'🇹🇷','Ghana':'🇬🇭','Scotland':'🏴󠁧󠁢󠁳󠁣󠁴󠁿','Tunisia':'🇹🇳','Iran':'🇮🇷','Bosnia & Herzegovina':'🇧🇦',
+  'DR Congo':'🇨🇩','Paraguay':'🇵🇾','Canada':'🇨🇦','Ivory Coast':'🇨🇮','Qatar':'🇶🇦','Algeria':'🇩🇿','Saudi Arabia':'🇸🇦','New Zealand':'🇳🇿',
+  'Panama':'🇵🇦','Haiti':'🇭🇹','Uzbekistan':'🇺🇿','Iraq':'🇮🇶','Curaçao':'🇨🇼','Jordan':'🇯🇴','Cape Verde':'🇨🇻','South Africa':'🇿🇦',
+};
+
+const STAGE_LABELS = {
+  group:'Group Stage', round_of_32:'Round of 32', round_of_16:'Round of 16',
+  quarterfinal:'Quarterfinals', semifinal:'Semifinals', final:'Final', winner:'🏆 Champion'
+};
+
+const STAGE_BONUS = {
+  group:0, round_of_32:2, round_of_16:4, quarterfinal:6, semifinal:8, final:10, winner:10
+};
+
+const TIER_CLASS = ['t1','t2','t3','t4','t5','t6'];
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let teamData = {};
+let currentView = 'board';
+let apiKey = localStorage.getItem('wc2026_apikey') || '';
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+if (apiKey) {
+  document.getElementById('api-key-input').value = apiKey;
+  document.getElementById('api-banner').style.display = 'none';
+  document.getElementById('status-txt').textContent = 'API key saved — click Refresh';
+}
+
+function saveKey() {
+  const val = document.getElementById('api-key-input').value.trim();
+  if (!val.startsWith('sk-ant-')) {
+    alert('That doesn\'t look like a valid Anthropic API key (should start with sk-ant-)');
+    return;
+  }
+  apiKey = val;
+  localStorage.setItem('wc2026_apikey', apiKey);
+  document.getElementById('api-banner').style.display = 'none';
+  document.getElementById('status-txt').textContent = 'Key saved — click Refresh scores';
+}
+
+// ─── SCORING ─────────────────────────────────────────────────────────────────
+function calcTeamPts(name) {
+  const t = teamData[name];
+  if (!t) return 0;
+  const win   = (t.wins  || 0) * 3;
+  const draw  = (t.draws || 0) * 1;
+  const goals = (t.goals_scored  || 0) * 1;
+  const cs    = (t.clean_sheets  || 0) * 1;
+  const stage = STAGE_BONUS[t.stage_reached] || 0;
+  const champ = t.stage_reached === 'winner' ? 5 : 0;
+  const runup = (t.stage_reached === 'final' && t.eliminated) ? 3 : 0;
+  return win + draw + goals + cs + stage + champ + runup;
+}
+
+function calcPlayerPts(player) {
+  return ASSIGNMENTS[player].reduce((s,[team]) => s + calcTeamPts(team), 0);
+}
+
+// ─── VIEWS ───────────────────────────────────────────────────────────────────
+function setView(v) {
+  currentView = v;
+  document.getElementById('btn-board').className = 'btn' + (v==='board' ? ' active' : '');
+  document.getElementById('btn-teams').className = 'btn' + (v==='teams' ? ' active' : '');
+  if (Object.keys(teamData).length) renderAll();
+}
+
+function renderAll() {
+  currentView === 'board' ? renderLeaderboard() : renderTeams();
+}
+
+function renderLeaderboard() {
+  const ranked = Object.keys(PLAYERS)
+    .map(p => ({ name: p, pts: calcPlayerPts(p) }))
+    .sort((a, b) => b.pts - a.pts);
+
+  let html = '<div class="leaderboard">';
+  ranked.forEach((p, i) => {
+    const pl = PLAYERS[p.name];
+    const medal = ['🥇','🥈','🥉'][i] || '';
+    const borderCls = ['gold','silver','bronze'][i] || '';
+    html += `
+    <div class="player-card ${borderCls}">
+      <div class="player-top">
+        <div class="rank-num">${medal || ('#'+(i+1))}</div>
+        <div class="avatar" style="background:${pl.bg};color:${pl.color}">${pl.initials}</div>
+        <div class="player-name">${p.name}</div>
+        <div class="player-total">
+          <div class="pts">${p.pts}</div>
+          <div class="lbl">pts</div>
+        </div>
+      </div>
+      <div class="team-pills">`;
+    for (const [team, tier] of ASSIGNMENTS[p.name]) {
+      const td = teamData[team] || {};
+      const pts = calcTeamPts(team);
+      const out = td.eliminated ? ' out' : '';
+      html += `<span class="pill ${TIER_CLASS[tier-1]}${out}">
+        <span class="flag">${FLAGS[team]||'🏳'}</span>
+        ${team}
+        <span class="ppts">${pts>0?'+'+pts:pts}</span>
+      </span>`;
+    }
+    html += `</div></div>`;
+  });
+  html += '</div>';
+  document.getElementById('main-content').innerHTML = html;
+}
+
+function renderTeams() {
+  let html = '';
+  for (const player of Object.keys(PLAYERS)) {
+    const pl = PLAYERS[player];
+    const total = calcPlayerPts(player);
+    html += `
+    <div class="player-section">
+      <div class="player-section-header">
+        <div class="avatar" style="background:${pl.bg};color:${pl.color};width:32px;height:32px;font-size:12px">${pl.initials}</div>
+        <span class="name">${player}</span>
+        <span class="total">${total} pts</span>
+      </div>
+      <table class="detail">
+        <thead><tr>
+          <th>Team</th><th>Tier</th><th>Stage</th><th>W/D/L</th><th>G</th><th>CS</th><th>Pts</th>
+        </tr></thead><tbody>`;
+    for (const [team, tier] of ASSIGNMENTS[player]) {
+      const td = teamData[team] || {};
+      const pts = calcTeamPts(team);
+      const out = td.eliminated ? ' eliminated-row' : '';
+      const champ = td.stage_reached === 'winner' ? ' champion' : '';
+      html += `<tr class="${out}">
+        <td>${FLAGS[team]||'🏳'} ${team}</td>
+        <td><span class="pill ${TIER_CLASS[tier-1]}" style="font-size:10px;padding:2px 6px">T${tier}</span></td>
+        <td class="${champ}">${STAGE_LABELS[td.stage_reached] || 'Group Stage'}</td>
+        <td>${td.wins||0}/${td.draws||0}/${td.losses||0}</td>
+        <td>${td.goals_scored||0}</td>
+        <td>${td.clean_sheets||0}</td>
+        <td><strong>${pts>0?'+'+pts:pts}</strong></td>
+      </tr>`;
+    }
+    html += `</tbody></table></div>`;
+  }
+  document.getElementById('main-content').innerHTML = html;
+}
+
+// ─── FETCH ───────────────────────────────────────────────────────────────────
+async function fetchScores() {
+  if (!apiKey) {
+    document.getElementById('error-box').innerHTML =
+      '<div class="error-msg">Please enter your Anthropic API key first.</div>';
+    return;
+  }
+  const btn = document.getElementById('refresh-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Loading…';
+  document.getElementById('error-box').innerHTML = '';
+  document.getElementById('main-content').innerHTML =
+    '<div class="loader"><span class="spinner"></span> Fetching live World Cup scores…</div>';
+  document.getElementById('status-txt').textContent = 'Loading…';
+
+  const allTeams = [...new Set(Object.values(ASSIGNMENTS).flat().map(([t])=>t))].join(', ');
+
+  const prompt = `You are a World Cup 2026 data assistant. The FIFA World Cup 2026 is currently in progress (or about to begin) in the USA, Canada, and Mexico.
+
+For each of these national teams, provide their current World Cup 2026 status using real live data you can find by searching the web:
+${allTeams}
+
+Search for the latest World Cup 2026 match results, group standings, and knockout bracket before responding.
+
+Respond ONLY with a valid JSON object. No preamble, no markdown, no backticks. Structure:
+{
+  "tournament_stage": "group_stage|round_of_32|round_of_16|quarterfinal|semifinal|final|not_started",
+  "last_updated": "brief freshness note",
+  "teams": {
+    "TeamName": {
+      "group": "A",
+      "played": 0,
+      "wins": 0,
+      "draws": 0,
+      "losses": 0,
+      "goals_scored": 0,
+      "clean_sheets": 0,
+      "stage_reached": "group|round_of_32|round_of_16|quarterfinal|semifinal|final|winner",
+      "eliminated": false,
+      "notes": "optional"
+    }
+  }
+}
+
+Stage bonus rules: group=0, round_of_32=+2, round_of_16=+4, quarterfinal=+6, semifinal=+8, final=+10, winner=+10+5 champion bonus. If a team isn't in the World Cup, set all stats to 0. Be as accurate as possible with real match data.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error?.message || `HTTP ${resp.status}`);
+    }
+
+    const data = await resp.json();
+    let jsonText = '';
+    for (const block of data.content || []) {
+      if (block.type === 'text') { jsonText = block.text; break; }
+    }
+    jsonText = jsonText.replace(/```json|```/g,'').trim();
+    const s = jsonText.indexOf('{');
+    if (s > 0) jsonText = jsonText.slice(s);
+
+    const parsed = JSON.parse(jsonText);
+    teamData = parsed.teams || {};
+    const ts = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    document.getElementById('status-txt').textContent = `Updated ${ts}`;
+    renderAll();
+  } catch(err) {
+    document.getElementById('error-box').innerHTML =
+      `<div class="error-msg"><strong>Error:</strong> ${err.message}. Check your API key and try again.</div>`;
+    document.getElementById('status-txt').textContent = 'Error';
+    document.getElementById('main-content').innerHTML =
+      '<div class="loader">Could not load data. Check the error above.</div>';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-refresh"></i> Refresh scores';
+  }
+}
+</script>
+</body>
+</html>
